@@ -10,10 +10,12 @@ import sys, getopt
 
 class LCD:
     """LCD Class from the work of Math Hawkins"""
-    def __init__(self):
+    def __init__(self, lcd_address):
 		# Define some device parameters
-        print("ini")
-        self.I2C_ADDR  = 0x3f # I2C device address
+       
+        self.I2C_ADDR  = lcd_address # 0x3f I2C device address 
+                                     # To detect use sudo i2cdetect -y 0
+                                     # or for RPi 2  sudo i2cdetect -y 1
         self.LCD_WIDTH = 16   # Maximum characters per line
 
         # Define some device constants
@@ -59,6 +61,14 @@ class LCD:
         self.bits_low = mode | ((bits<<4) & 0xF0) | self.LCD_BACKLIGHT
 
         # High bits
+        try:
+            self.bus.write_byte(self.I2C_ADDR, self.bits_high)
+        except:
+            print ("------------------------------------------")
+            print ("ERROR - Cannot write on the LCD @ Address " + self.I2C_ADDR )
+            print ("------------------------------------------")
+            printhelp()
+            quit()
         self.bus.write_byte(self.I2C_ADDR, self.bits_high)
         self.lcd_toggle_enable(self.bits_high)
 
@@ -98,32 +108,44 @@ def lms_time_to_string(lms_time ):
     return "%s:%s" %(minutes, seconds)
 
 import sys, getopt
+def printhelp():
+    """Print help to explain parameters"""
+    print ("------------ USAGE ---------------------------------------------")
+    print ("lms_testcom.py -s <ipserver> -p <player number> -l <lcd_address>")
+    print ("ipserver is an IP Adress like 192.168.1.102")
+    print ("player is the n* of the player for the LMS server.") 
+    print (" Type 1 if you have 1 player only")
+    print ("lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0 ") 
+    print ("----------------------------------------------------------------")
 
 def main(argv):
     lmsserver = ""
     lmsplayer = ""
+    lcd_address = "0x3f"
     try:
-        opts, args = getopt.getopt(argv,"hs:p:",["server=","player="])
+        opts, args = getopt.getopt(argv,"hs:p:l:",["server=","player=","lcd_address"])
     except getopt.GetoptError:
-        print ("lms_testcom.py -s <ipserver> -p <player number>")
+        printhelp()
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print ("lms_testcom.py -s <ipserver> -p <player number>")
+            printhelp()
             sys.exit()
         elif opt in ("-s", "--server"):
             lmsserver = arg
         elif opt in ("-p", "--player"):
             lmsplayer = arg
-    
-    myLCD = LCD()
+        elif opt in("l","--lcd_address"):
+            lcd_address = arg
+    print ("lcd " + lcd_address)
+    myLCD = LCD(int(lcd_address,16))
     #myLCD.lcd_string"1234567890123456",1)
     myLCD.lcd_string("    TVC Audio   ",1)
     myLCD.lcd_string("     (C)2017    ",2)
-    sleep(1)
-    myLCD.lcd_string("Renaud          ",1)
+    sleep(2)
+    myLCD.lcd_string("(C)2017 Renaud  ",1)
     myLCD.lcd_string("Coustellier     ",2)
-    sleep(1)
+    sleep(2)
 
     if lmsserver =="":
         lmsserver = "192.168.1.134"
