@@ -2,11 +2,11 @@
 from pylms.server import Server
 from pylms.player import Player
 from time import sleep
-import time
 # import readchar ???
 import smbus
 import time
 import sys, getopt
+import signal
 
 class LCD:
     """LCD Class from the work of Math Hawkins"""
@@ -118,7 +118,14 @@ def printhelp():
     print ("lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0 ") 
     print ("----------------------------------------------------------------")
 
+def sigterm_handler(_signo, _stack_frame):
+    "When script sends the TERM signal, cleanup before exiting."
+    print("[" + get_now() + "] received signal {}, exiting...".format(_signo))
+    # cleanup_pins()
+    sys.exit(0)
+
 def main(argv):
+    signal.signal(signal.SIGTERM, sigterm_handler) # to manage the app as a service
     lmsserver = ""
     lmsplayer = ""
     lcd_address = "0x3f"
@@ -152,19 +159,28 @@ def main(argv):
 
     sc = Server(hostname=lmsserver, port=9090, username="user", password="password")
 
-    try:
-        sc.connect()
-        myLCD.lcd_string("LMS SERVER",1)
-        myLCD.lcd_string(lmsserver,2)
-        sleep(1)
-    except:
-        print ("cannot connect to the server @" + lmsserver )
-        #myLCD.lcd_string"1234567890123456",1)
-        myLCD.lcd_string("Err cnct. server",1)
-        myLCD.lcd_string(lmsserver,2)
-        printhelp()
-        sleep(3)
-        quit(0)
+    test_con = 1
+    test_max = 6
+    while test_con < test_max :
+        try:
+            sc.connect()
+            myLCD.lcd_string("LMS SERVER",1)
+            myLCD.lcd_string(lmsserver,2)
+            sleep(1)
+            test_con = test_max
+        except:
+            test_con + 1
+            print ("cannot connect to the server @" + lmsserver )
+            #myLCD.lcd_string"1234567890123456",1)
+            myLCD.lcd_string("not connected " ,1)
+            myLCD.lcd_string("try " + str(test_con) + " / 5" ,1)
+            sleep(3)
+            myLCD.lcd_string(lmsserver,2)
+            
+            sleep(3)
+            if test_con == test_max:
+                printhelp()
+                quit(0)
 
     print ("Logged in: %s" % sc.logged_in )
     print ("LMS Version: %s" % sc.get_version())
