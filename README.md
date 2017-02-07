@@ -3,15 +3,49 @@ Managing an i2C LCD 16x2 with an Orange Pi Zero
 ----
 Before we start, we need to install python specific package. This package includes header files, a static library and development tools. In particular Pyhton.h is required to install the GPIO software.
 
-sudo apt-get install python-dev
-#sudo apt-get install python3-dev
-then we install the package for managing gpio and start the GPIO:
-sudo python setup.py install 
-sudo modprobe gpio-sunxi
+FOR ORANGE PI ZERO WITH DEBIAN
+
+1/ add in /etc/modules 
+i2c-bcm2708
+i2c-dev
+
+2/ then reboot
+
+3/ add gpio module:
+sudo modprobe gpio-sunxi 
+
+4/ add python smbus:
 sudo apt-get install python-smbus
+
+4/ install tool for reading address:
 sudo apt-get install i2c-tools
 
-USAGE 
+5/ read address of I2C LCD
+sudo i2cdetect -y 0
+
+6/ install python installer package
+sudo apt-get install python-pip 
+
+7/ add setutools of xenial (not required for Debian)
+sudo apt-get install python-setuptools
+
+8/ add pylms
+sudo pip install pylms
+
+9/there is an error (2 in fact) in pylms package:
+in the /usr/local/lib/python2.7/dist-packages/pylms/server.py file, around line 100, replace with thses 2 lines:
+ import unicodedata
+ result = unicodedata.normalize('NFKD', result).encode('ascii','ignore')
+
+10/ get the wrapper for the GPIO for OPZ :
+https://github.com/nvl1109/orangepi_PC_gpio_pyH3/tree/1bb13a6bfaa13c05efc5bd1dd685ecda14b95358/pyA20
+
+11/ install it:
+sudo python setup.py install
+
+12 finished!!!
+------------------------------------ USAGE
+
 lms_testcom.py
   -s <ipserver>
   -p <ipplayer>
