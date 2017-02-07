@@ -9,7 +9,7 @@ import sys, getopt
 import signal
 
 class LCD:
-    """LCD Class from the work of Math Hawkins"""
+    """LCD Class build from the work of Math Hawkins"""
     def __init__(self, lcd_address):
 		# Define some device parameters
        
@@ -111,24 +111,24 @@ import sys, getopt
 def printhelp():
     """Print help to explain parameters"""
     print ("------------ USAGE ---------------------------------------------")
-    print ("lms_testcom.py -s <ipserver> -p <ipplayer> -l <lcd_address>")
-    print ("ipserver is an IP Adress like 192.168.1.102")
-    print ("player is the n* of the player for the LMS server.") 
-    print (" Type 1 if you have 1 player only")
-    print ("lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0 ") 
+    print ("lms_testcom.py ")
+    print ("-s <ipserver>")
+    print ("-p <ipplayer>")
+    print ("-l <lcd_address>")
+    print ("-w <lcd_width>")
+    print ("ipserver like 192.168.1.102")
+    print ("player like 192.168.1.115 / no parameter = player n°1") 
+    print ("lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0") 
+    print ("lcd with is 16 or 20 / 16 means 16x2, 20 means 20x4")
     print ("----------------------------------------------------------------")
 
-def sigterm_handler(_signo, _stack_frame):
-    "When script sends the TERM signal, cleanup before exiting."
-    print("[" + get_now() + "] received signal {}, exiting...".format(_signo))
-    # cleanup_pins()
-    sys.exit(0)
-
 def main(argv):
-    signal.signal(signal.SIGTERM, sigterm_handler) # to manage the app as a service
+    """MAIN LCD MANAGER APP FOR LMS"""
+    # signal.signal(signal.SIGTERM, sigterm_handler) # to manage the app as a service
     lmsserver = ""
     lmsplayer = ""
     lcd_address = "0x3f"
+    lcd_w = 16
     try:
         opts, args = getopt.getopt(argv,"hs:p:l:",["server=","player=","lcd_address"])
     except getopt.GetoptError:
@@ -144,7 +144,8 @@ def main(argv):
             lmsplayer = arg
         elif opt in("l","--lcd_address"):
             lcd_address = arg
-    
+        elif opt in("w","--lcd_width"):
+            lcd_w = arg    
     myLCD = LCD(int(lcd_address,16))
     #myLCD.lcd_string"1234567890123456",1)
     myLCD.lcd_string("   TVC Audio    ",1)
@@ -152,15 +153,16 @@ def main(argv):
     sleep(2)
     myLCD.lcd_string("(C)2017 Renaud  ",1)
     myLCD.lcd_string("Coustellier     ",2)
-    sleep(2)
-
+    sleep(1)
+    myLCD.lcd_string("Initializing",1)
+    myLCD.lcd_string("Please wait",2)
     if lmsserver =="":
         lmsserver = "192.168.1.134"
 
     sc = Server(hostname=lmsserver, port=9090, username="user", password="password")
 
     test_con = 1
-    test_max = 6
+    test_max = 5
     while test_con < test_max :
         try:
             sc.connect()
@@ -169,11 +171,11 @@ def main(argv):
             sleep(1)
             test_con = test_max
         except:
-            test_con + 1
+            test_con = test_con + 1
             print ("cannot connect to the server @" + lmsserver )
             #myLCD.lcd_string"1234567890123456",1)
             myLCD.lcd_string("not connected " ,1)
-            myLCD.lcd_string("try " + str(test_con) + " / 5" ,1)
+            myLCD.lcd_string("try " + str(test_con) + " / 5" ,2)
             sleep(3)
             myLCD.lcd_string(lmsserver,2)
             
@@ -263,49 +265,70 @@ def main(argv):
                 myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),2)
                 sleep(2)
             elif modePlayer == "play":
-                print ("")
-                print ("album:" + sq.get_track_album())
-                print ("artist:" + sq.get_track_artist())
-                print ("title:" + sq.get_track_current_title())
-                #myLCD.lcd_string("1234567890123456",1)
-                myLCD.lcd_string("Alb." + sq.get_track_album(),1)
-                myLCD.lcd_string("Art." + sq.get_track_artist(),2)
-                sleep(5)
-                #myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),2)
-                
-                td =  "/" + lms_time_to_string(sq.get_track_duration())
-                
+                trackAlbum = sq.get_track_album()
                 currentTrack = sq.get_track_current_title()
+                trackArtist = sq.get_track_artist()
                 currentVolume = sq.get_volume()
+
+                print ("")
+                print ("album:" + trackAlbum)
+                print ("artist:" + trackArtist)
+                print ("title:" + currentTrack)
+
+                #myLCD.lcd_string("1234567890123456",1)
+                myLCD.lcd_string("Alb." + trackAlbum,1)
+                myLCD.lcd_string("Art." + trackArtist,2)
+                sleep(2)
+                myLCD.lcd_string(trackAlbum,1)
+                myLCD.lcd_string(trackArtist,2)
+                
+                td =  "/" + lms_time_to_string(sq.get_track_duration())        
+                
                 linestatus = 0
+                charOffset = 0
                 while True:
                     linestatus = linestatus + 1
                     volume = (" - Volume %" + str(sq.get_volume()) )
                     te =  "time " + lms_time_to_string(sq.get_time_elapsed())
                     #print ('\r'"time " + te + td + volume, end ='')
-                    if linestatus < 5:
-                        myLCD.lcd_string("tle:" + sq.get_track_current_title(), 1)
-                        myLCD.lcd_string(te + td, 2)
-                    elif linestatus < 15:
-                        myLCD.lcd_string(sq.get_track_current_title(), 1)
-                        myLCD.lcd_string(te + td, 2)    
-                    elif linestatus < 20:
-                        myLCD.lcd_string(sq.get_track_album(),1)
-                        myLCD.lcd_string(sq.get_track_artist(),2)     
-                    elif linestatus >= 25:
-                        linestatus = 0
-                    
                     while currentVolume != sq.get_volume():
+                        # Volume
                         myLCD.lcd_string("Volume %" + str(sq.get_volume()), 1)    
                         currentVolume = sq.get_volume()
                         sleep(1)
+                    if linestatus < 2:
+                        myLCD.lcd_string("tle:" + currentTrack, 1)
+                        myLCD.lcd_string(te + td, 2)
+                    elif linestatus < 15:
+                        # Track Name
+                        if len(currentTrack) <= lcd_w:
+                            # LENGHT is < LCD LCD_WIDTH
+                            myLCD.lcd_string(currentTrack, 1)
+                        else:
+                            # LENGHT is > LCD_WIDTH
+                            charOffset = linestatus - 2
+                            myLCD.lcd_string(currentTrack[charOffset:], 1)    
+                        myLCD.lcd_string(te + td, 2)    
+                    elif linestatus < 20:
+                        if len(trackAlbum) <= lcd_w:
+                            myLCD.lcd_string(trackAlbum,1)
+                        else:
+                            charOffset = linestatus - 15
+                            myLCD.lcd_string(trackAlbum[charOffset:], 1) 
+
+                        myLCD.lcd_string(trackArtist,2)     
+                    elif linestatus >= 23:
+                        linestatus = 0
                     if sq.get_track_current_title() != currentTrack or sq.get_mode() !="play" :
+                        # change detected
                         myLCD.lcd_string("Track/mode chang", 1)
                         myLCD.lcd_string("pls wait...     ", 2)
                         break
                     sleep(1)
         except:
-            print("error during Communication, please restart")
+            print("error -->", sys.exc_info()[0])
+            myLCD.lcd_string("Sorry error", 1)
+            myLCD.lcd_string(sys.exc_info()[0], 2)
             quit(0)
 
 if __name__ == "__main__":
