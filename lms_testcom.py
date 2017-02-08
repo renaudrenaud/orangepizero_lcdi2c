@@ -117,7 +117,7 @@ def printhelp():
     print ("-l <lcd_address>")
     print ("-w <lcd_width>")
     print ("ipserver like 192.168.1.102")
-    print ("player like 192.168.1.115 / no parameter = player n°1") 
+    print ("player like 192.168.1.115 / no parameter = player n*1") 
     print ("lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0") 
     print ("lcd with is 16 or 20 / 16 means 16x2, 20 means 20x4")
     print ("----------------------------------------------------------------")
