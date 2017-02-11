@@ -9,7 +9,7 @@ FOR ORANGE PI ZERO WITH DEBIAN
 i2c-bcm2708
 i2c-dev
 
-2/ then reboot
+2/ reboot
 
 3/ add gpio module:
 sudo modprobe gpio-sunxi 
@@ -49,9 +49,11 @@ sudo python setup.py install
 lms_testcom.py
   -s <ipserver>
   -p <ipplayer>
-  -l <lcd_address>
+  -w <lcd_width>
   -w <lcd_width>
     ipserver like 192.168.1.102
     player like 192.168.1.115 / no parameter = player n°1
-    lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0
     lcd with is 16 or 20 / 16 means 16x2, 20 means 20x4
+    lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0
+
+example : sudo python -s 192.168.1.120 -p 192.168.1.104 -w 20
