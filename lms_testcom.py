@@ -18,7 +18,7 @@ class LCD:
                                      # or for RPi 2  sudo i2cdetect -y 1
         self.LCD_WIDTH = lcd_width   # 16 or 20 Maximum characters per line
         print ("class LCD " + str(lcd_width))    
-        #self.LCD_WIDTH = 20   # Maximum characters per line
+        #LCD_WIDTH = 20 OR 16   # Maximum characters per line
 
         # Define some device constants
         self.LCD_CHR = 1 # Mode - Sending data
@@ -103,7 +103,7 @@ class LCD:
 
 
 def lms_time_to_string(lms_time ):
-    "covert a time from LMS into a mm:ss time"
+    """convert a time from LMS into a mm:ss time"""
     seconds = int(lms_time)
     minutes = int(seconds / 60)
     seconds = seconds - minutes * 60
@@ -120,12 +120,14 @@ def printhelp():
     print ("lms_testcom.py ")
     print ("-s <ipserver>")
     print ("-p <ipPlayer>")
-    print ("-l <lcd_address>")
     print ("-w <lcd_width>")
+    print ("-l <lcd_address>")
+
     print ("ipserver like 192.168.1.102")
-    print ("player like 192.168.1.115 / no parameter = player n*1") 
-    print ("lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0") 
-    print ("lcd with is 16 or 20 / 16 means 16x2, 20 means 20x4")
+    print ("player like 192.168.1.115 / default = player n*1") 
+    print ("lcd with is 16 or 20 / 16 means 16x2, 20 means 20x4 / default = 20")
+    print ("lcd_address is the i2C LCD address like 0x3f (default). Use sudo i2cdetect -y 0") 
+
     print ("----------------------------------------------------------------")
 
 def main(argv):
@@ -134,6 +136,7 @@ def main(argv):
     lmsplayer = "127.0.0.1"
     lcd_address = "0x3f"
     lcd_w = 16
+    verbose = True
     try:
         opts, args = getopt.getopt(argv,"hs:p:w:l",["server=","player=","lcd_width=","lcd_address="])
     except getopt.GetoptError:
@@ -148,10 +151,10 @@ def main(argv):
             lmsserver = arg
         elif opt in ("-p", "--player"):
             lmsplayer = arg
-        elif opt in("-l","--lcd_address"):
-            lcd_address = arg
         elif opt in("-w","--lcd_width"):
-            lcd_w = int(arg)    
+            lcd_w = int(arg)
+        elif opt in("-l","--lcd_address"):
+            lcd_address = arg    
            
 
     myLCD = LCD(int(lcd_address,16), lcd_w)
@@ -179,59 +182,49 @@ def main(argv):
             sleep(1)
             test_con = test_max
         except:
-            test_con = test_con + 1
             print ("cannot connect to the server @" + lmsserver )
             #myLCD.lcd_string"1234567890123456",1)
             myLCD.lcd_string("connecting " ,1)
-            myLCD.lcd_string("try " + str(test_con) + " / 5" ,2)
+            myLCD.lcd_string("try " + str(test_con -1) + " / 5" ,2)
             sleep(2)
             myLCD.lcd_string("tried :" ,1)
             myLCD.lcd_string(lmsserver,2)
-            
+            test_con = test_con + 1
             sleep(8)
             if test_con == test_max:
                 printhelp()
                 quit(0)
-
-    print ("Logged in: %s" % sc.logged_in )
-    print ("LMS Version: %s" % sc.get_version())
+    if verbose:
+        print ("Logged in: %s" % sc.logged_in )
+        print ("LMS Version: %s" % sc.get_version())
 
     #myLCD.lcd_string"1234567890123456",1)
     myLCD.lcd_string("LMS SERVER",1)
     myLCD.lcd_string("LMS v.: %s" % sc.get_version(),2)
-    sleep(2)
+    sleep(5)
 
     # Player Connection
     if sc.get_player_count() > 0:
-        print ("Players %d" % sc.get_player_count())
-        print (sc.get_players(True))
+        if verbose:
+            print ("Players %d" % sc.get_player_count())
+            print (sc.get_players(True))
         myLCD.lcd_string("Players cnt= %d" % sc.get_player_count(),2)
         sleep(2)
     else:
-        print ("No Player connected")
-        fline = False
-        while sc.get_player_count() == 0:
-            if fline == True:
-                fline = False
-            else:
-                fline = True
-            if fline == True:
-                myLCD.lcd_string("No player cncted",1)
-            else:
-                myLCD.lcd_string("svr" + lmsserver,1)
-            myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),2)
-            sleep(2)
+        if verbose:
+            print ("No Player connected")
         
+        while sc.get_player_count() == 0:
+            myLCD.lcd_string("No player cncted",1)
+            myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M'),2)
+            sleep(5)
     
     players = []
     players = sc.get_players(True)   
     p = 0
-    if lmsplayer == "":
-         sq = players[0]
-    else:
-        
-        players = sc.get_players(True)   
-       
+  
+    players = sc.get_players(True)   
+    if lcd_w == 16:
         for player in players:
             ipPlayer = str(players[p].get_ip_address())
             ipPlayer = ipPlayer[0:ipPlayer.find(":")]
@@ -243,27 +236,40 @@ def main(argv):
                 sq = players[p]
                 break
             p = p + 1
+    else:
+        for player in players:
+            ipPlayer = str(players[p].get_ip_address())
+            ipPlayer = ipPlayer[0:ipPlayer.find(":")]
+            myLCD.lcd_string("found player",1)
+            # if p < 4:
+            #     myLCD.lcd_string(ipPlayer, p+2)
+            # else:
+            #     myLCD.lcd_string(ipPlayer,4)
 
-    myLCD.lcd_string("connected to p" + str(p + 1) ,1)
+            myLCD.lcd_string("-->ip " + ipPlayer,3)
+            myLCD.lcd_string("-->lms" + lmsplayer,4)
+        
+            sleep(2)    
+            if ipPlayer == lmsplayer:
+                myLCD.lcd_string("-->" + lmsplayer,1)
+                myLCD.lcd_string("connected !",2)
+                myLCD.lcd_string(" ",3)
+                myLCD.lcd_string(" ",4)
+                sleep(2)
+                sq = player
+                break
+            p = p + 1
+
     playerName = sq.get_name()
     playerModel = sq.get_model()
     
-    myLCD.lcd_string(playerName,2)
+    if lcd_w == 20:
+        myLCD.lcd_string(playerName,3)
+        myLCD.lcd_string(playerModel,4)
     sleep(2)
-    myLCD.lcd_string(playerName,1)
-    myLCD.lcd_string(ipPlayer,2)
+    # print sq.get_rate()
+    # print ("mac " + sq.get_ref())
     
-    print ("player ip:" + sq.get_ip_address())
-    #print ("Name: %s | Mode: %s | Time: %s | Connected: %s | WiFi: %s"
-    #    % (sq.get_name(), sq.get_mode(), sq.get_time_elapsed(),
-    #        sq.is_connected, sq.get_wifi_signal_strength()))
-
-    
-    print ("player ip:" + sq.get_ip_address())
-    #print sq.get_rate()
-    print ("mac " + sq.get_ref())
-
-
     if lcd_w == "16":
         # 16x2 LCD Code
         while True:
@@ -349,11 +355,12 @@ def main(argv):
 
     else:
         # 20x4 LCD Code
+        # print ("Power Sate" + str(sq.get_power_state()))
         while True:
             try:
-                modePlayer = sq.get_mode()  
+                modePlayer = sq.get_mode()
                 if modePlayer == "pause":
-                    myLCD.lcd_string(playerName + "=pause",1)
+                    myLCD.lcd_string(playerName + "=" + modePlayer,1)
                     myLCD.lcd_string(playerModel,2)
                     line3 = "RJ45"
                     if int(sq.get_wifi_signal_strength()) > 1:
@@ -361,40 +368,37 @@ def main(argv):
                     line3 = line3 + " " + ipPlayer
                     myLCD.lcd_string(line3,3)
                     myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),4)
-                    sleep(1)
+                    sleep(0.5)
                 elif modePlayer == "stop":
-                    myLCD.lcd_string(playerName + "=stop",1)
-                    myLCD.lcd_string("on-", lmsserver,2)
-                    line3 = "RJ45"
-                    if int(sq.get_wifi_signal_strength()) > 1:
-                        line3 = "W% " + str(sq.get_wifi_signal_strength())
-                    line3 = line3 + " " + ipPlayer
-                    myLCD.lcd_string(line3,3)
-                    myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),4)
-                    sleep(1)
-                    
+                    myLCD.lcd_string("       Clock",1)
+                    myLCD.lcd_string(" ",2)
+                    myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),3)
+                    myLCD.lcd_string(" ",4)
+                    sleep(0.5)
                 elif modePlayer == "play":
                     trackAlbum = sq.get_track_album()
                     currentTrack = sq.get_track_current_title()
                     trackArtist = sq.get_track_artist()
                     currentVolume = sq.get_volume()
-                    
-                    print ("")
-                    print ("album:" + trackAlbum)
-                    print ("artist:" + trackArtist)
-                    print ("title:" + currentTrack)
+                    if verbose == True:
+                        print ("")
+                        print ("album:" + trackAlbum)
+                        print ("artist:" + trackArtist)
+                        print ("title:" + currentTrack)
 
-                    myLCD.lcd_string(trackAlbum,2)
-                    myLCD.lcd_string(trackArtist,1  )
-                    
+                    #myLCD.lcd_string(trackArtist,1  )
+                    #myLCD.lcd_string(trackAlbum,2)
                     td =  "/" + lms_time_to_string(sq.get_track_duration())        
                     
                     linestatus = 0
                     charOffset = 0
+                    
                     while True:
                         linestatus = linestatus + 1
                         volume = (" - Volume %" + str(sq.get_volume()) )
-                        te =  "time " + lms_time_to_string(sq.get_time_elapsed())
+                        te = lms_time_to_string(sq.get_time_elapsed()) 
+                        te = te + td
+                        te = te + " " + str(sq.playlist_current_track_index()) + "/" + str(sq.playlist_track_count()) 
                         while currentVolume != sq.get_volume():
                             # Volume
                             currentVolume = sq.get_volume()
@@ -407,21 +411,25 @@ def main(argv):
                             break    
                         
                         # Track Name
-                        myLCD.lcd_string(trackArtist,1)
-                        myLCD.lcd_string(trackAlbum,2)
+                        myLCD.lcd_string(trackArtist, 1)
+                        myLCD.lcd_string(trackAlbum, 2)
                         myLCD.lcd_string(currentTrack, 3)
-                        myLCD.lcd_string(te + td, 4)
+                        
+                        myLCD.lcd_string(te, 4)
                         sleep(0.5)
             except:
+                #if sq.get_power_state():
                 print("error -->", sys.exc_info()[0])
-                myLCD.lcd_string("Sorry error", 1)
-                try:
-                    myLCD.lcd_string(sys.exc_info()[0], 2)
-                except:
-                     print("error -->", sys.exc_info()[0])
+                myLCD.lcd_string("Not connected...", 1)
+                # try:
+                #     myLCD.lcd_string("Error ocured", 2)
+                # except:
+                #     print("error -->", sys.exc_info()[0])
 
-                quit(0)
-
+                #     #quit(0)
+                # else:
+                #      myLCD.lcd_string("Disconected", 1)
+                #      sleep(5)
 
 
 if __name__ == "__main__":
