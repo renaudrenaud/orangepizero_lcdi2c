@@ -202,7 +202,7 @@ def main(argv):
     myLCD.lcd_string("LMS SERVER",1)
     myLCD.lcd_string("LMS v.: %s" % sc.get_version(),2)
     sleep(5)
-
+    
     # Player Connection
     if sc.get_player_count() > 0:
         if verbose:
@@ -241,19 +241,18 @@ def main(argv):
             ipPlayer = str(players[p].get_ip_address())
             ipPlayer = ipPlayer[0:ipPlayer.find(":")]
             myLCD.lcd_string("found player",1)
-            # if p < 4:
-            #     myLCD.lcd_string(ipPlayer, p+2)
-            # else:
-            #     myLCD.lcd_string(ipPlayer,4)
+            if p < 4:
+                 myLCD.lcd_string(ipPlayer, p+2)
+            else:
+                myLCD.lcd_string(ipPlayer,4)
 
-            myLCD.lcd_string("-->ip " + ipPlayer,3)
-            myLCD.lcd_string("-->lms" + lmsplayer,4)
+            #myLCD.lcd_string("-->ip " + ipPlayer,3)
+            #myLCD.lcd_string("-->lms" + lmsplayer,4)
         
             sleep(2)    
             if ipPlayer == lmsplayer:
-                myLCD.lcd_string("-->" + lmsplayer,1)
-                myLCD.lcd_string("connected !",2)
-                myLCD.lcd_string(" ",3)
+                myLCD.lcd_string("-->" + lmsplayer,2)
+                myLCD.lcd_string("connected !",3)
                 myLCD.lcd_string(" ",4)
                 sleep(2)
                 sq = player
@@ -267,10 +266,8 @@ def main(argv):
         myLCD.lcd_string(playerName,3)
         myLCD.lcd_string(playerModel,4)
     sleep(2)
-    # print sq.get_rate()
-    # print ("mac " + sq.get_ref())
     
-    if lcd_w == "16":
+    if lcd_w == 16:
         # 16x2 LCD Code
         while True:
             try:
@@ -355,7 +352,7 @@ def main(argv):
 
     else:
         # 20x4 LCD Code
-        # print ("Power Sate" + str(sq.get_power_state()))
+        print ("Power Sate" + str(sq.get_power_state()))
         while True:
             try:
                 modePlayer = sq.get_mode()
@@ -403,6 +400,9 @@ def main(argv):
                             # Volume
                             currentVolume = sq.get_volume()
                             myLCD.lcd_string("Volume %" + str(currentVolume), 1)    
+                            print (sq.get_rate())
+                            print (sq.get_treble())
+                            print (sq.get_pitch())
                             sleep(.4)
                         if sq.get_track_current_title() != currentTrack or sq.get_mode() !="play" :
                             # change detected
