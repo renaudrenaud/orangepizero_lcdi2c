@@ -398,7 +398,7 @@ def main(argv):
                             # Volume
                             currentVolume = sq.get_volume()
                             myLCD.lcd_string("Volume %" + str(currentVolume), 1)    
-                            print (sq.get_rate())
+                            #print (sq.get_rate())
                             print (sq.get_treble())
                             print (sq.get_pitch())
                             sleep(.4)
@@ -428,7 +428,7 @@ def main(argv):
             except:
                 #if sq.get_power_state():
                 print("error -->", sys.exc_info()[0])
-                myLCD.lcd_string("Not connected...", 1)
+                myLCD.lcd_string("error occured", 1)
                
 
 if __name__ == "__main__":
