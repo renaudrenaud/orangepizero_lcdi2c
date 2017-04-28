@@ -3,8 +3,7 @@ Managing an i2C LCD 16x2 with an Orange Pi Zero
 ----
 Before we start, we need to install python specific package. This package includes header files, a static library and development tools. In particular Pyhton.h is required to install the GPIO software.
 
-FOR ORANGE PI ZERO WITH DEBIAN
-
+FOR ORANGE PI ZERO WITH ARMBIAN
 1/ add in /etc/modules 
 i2c-bcm2708
 i2c-dev
@@ -57,3 +56,9 @@ lms_testcom.py
     lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0
 
 example : sudo python -s 192.168.1.120 -p 192.168.1.104 -w 20
+
+More info
+my project page sites.google.com/site/orangepizero/logitech-media-server
+distro          www.armbian.com
+Raspberry LCD   www.raspberrypi-spy.co.uk/2015/05/using-an-i2c-enabled-lcd-screen-with-the-raspberry-pi/
+
