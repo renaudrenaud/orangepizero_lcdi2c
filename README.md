@@ -57,7 +57,7 @@ lms_testcom.py
 example : sudo python -s 192.168.1.120
 
 More info
-my project page sites.google.com/site/orangepizero/logitech-media-server
+my project page www.sites.google.com/site/orangepizero/logitech-media-server
 
 distro          www.armbian.com
 
