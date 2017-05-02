@@ -133,9 +133,9 @@ def printhelp():
 def main(argv):
     """MAIN LCD MANAGER APP FOR LMS"""
     lmsserver = "127.0.0.1"
-    lmsplayer = "127.0.0.1"
+    lmsplayer = ""
     lcd_address = "0x3f"
-    lcd_w = 16
+    lcd_w = 20
     verbose = True
     try:
         opts, args = getopt.getopt(argv,"hs:p:w:l",["server=","player=","lcd_width=","lcd_address="])
@@ -193,7 +193,7 @@ def main(argv):
             else:
                 myLCD.lcd_string("     ** Clock **",1)
                 myLCD.lcd_string(" ",2)
-                myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M'),3)
+                myLCD.lcd_string(time.strftime('%Y-%m-%d  %H:%M'),3)
                 myLCD.lcd_string(" ",4)
                 sleep(5)
 
@@ -222,39 +222,55 @@ def main(argv):
     players = []
     players = sc.get_players(True)   
     p = 0
-  
-    players = sc.get_players(True)   
-    if lcd_w == 16:
-        for player in players:
-            ipPlayer = str(players[p].get_ip_address())
-            ipPlayer = ipPlayer[0:ipPlayer.find(":")]
-            myLCD.lcd_string("found player",1)
-            myLCD.lcd_string(ipPlayer,2)
-            print (ipPlayer)
-            sleep(1)    
-            if ipPlayer == lmsplayer:
-                sq = players[p]
-                break
-            p = p + 1
+
+    if lmsplayer <> "":
+        if lcd_w == 16:
+            for player in players:
+                ipPlayer = str(players[p].get_ip_address())
+                ipPlayer = ipPlayer[0:ipPlayer.find(":")]
+                myLCD.lcd_string("found player",1)
+                myLCD.lcd_string(ipPlayer,2)
+                print (ipPlayer)
+                sleep(1)    
+                if ipPlayer == lmsplayer:
+                    sq = players[p]
+                    break
+                p = p + 1
+        else:
+            for player in players:
+                ipPlayer = str(players[p].get_ip_address())
+                ipPlayer = ipPlayer[0:ipPlayer.find(":")]
+                myLCD.lcd_string("found player",1)
+                if p < 4:
+                    myLCD.lcd_string(ipPlayer, p+2)
+                else:
+                    myLCD.lcd_string(ipPlayer,4)
+            
+                sleep(1)    
+                if ipPlayer == lmsplayer:
+                    myLCD.lcd_string("-->" + lmsplayer,2)
+                    myLCD.lcd_string("connected !",3)
+                    myLCD.lcd_string(" ",4)
+                    sleep(2)
+                    sq = player
+                    break
+                p = p + 1
     else:
-        for player in players:
-            ipPlayer = str(players[p].get_ip_address())
-            ipPlayer = ipPlayer[0:ipPlayer.find(":")]
-            myLCD.lcd_string("found player",1)
-            if p < 4:
-                 myLCD.lcd_string(ipPlayer, p+2)
-            else:
-                myLCD.lcd_string(ipPlayer,4)
-        
-            sleep(1)    
-            if ipPlayer == lmsplayer:
-                myLCD.lcd_string("-->" + lmsplayer,2)
-                myLCD.lcd_string("connected !",3)
-                myLCD.lcd_string(" ",4)
-                sleep(2)
+         while True:
+            print ("Player autodiscovering...")
+            
+            players = []
+            players = sc.get_players(True)   
+            for player in players:
                 sq = player
+                modePlayer = sq.get_mode()
+                if modePlayer == "play":
+                    break
+                sleep(2)
+            if modePlayer == "play":
+                ipPlayer = player.get_ip_address()
+                print("discovered " + ipPlayer)
                 break
-            p = p + 1
 
     playerName = sq.get_name()
     playerModel = sq.get_model()
@@ -275,8 +291,18 @@ def main(argv):
                     sleep(2)
                 elif modePlayer == "stop":
                     myLCD.lcd_string("     Clock     ",1)
-                    myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),2)
+                    myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M'),2)
                     sleep(2)
+                    sleep(0.5)
+                    # when player is stop, looking for running player...
+                    players = []
+                    players = sc.get_players(True)   
+                    for player in players:
+                        sq = player
+                        modePlayer = sq.get_mode()
+                        if modePlayer == "play":
+                            break
+                    
                 elif modePlayer == "play":
                     trackAlbum = sq.get_track_album()
                     currentTrack = sq.get_track_current_title()
@@ -358,8 +384,10 @@ def main(argv):
                     myLCD.lcd_string(playerName + "=" + modePlayer,1)
                     myLCD.lcd_string(playerModel,2)
                     line3 = "RJ45"
+                    ipPlayer = sq.get_ip_address()
+                    ipPlayer = ipPlayer[0:ipPlayer.find(":")]
                     if int(sq.get_wifi_signal_strength()) > 1:
-                        line3 = "W% " + str(sq.get_wifi_signal_strength())
+                        line3 = "wifi" + str(sq.get_wifi_signal_strength())
                     line3 = line3 + " " + ipPlayer
                     myLCD.lcd_string(line3,3)
                     myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),4)
@@ -367,9 +395,19 @@ def main(argv):
                 elif modePlayer == "stop":
                     myLCD.lcd_string("       Clock",1)
                     myLCD.lcd_string(" ",2)
-                    myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),3)
-                    myLCD.lcd_string(" ",4)
-                    sleep(0.5)
+                    myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M'),3)
+                    myLCD.lcd_string("  www.tvcaudio.com ",4)
+                    sleep(2)
+                    # when player mode is stop, looking for another running player...
+                    players = []
+                    players = sc.get_players(True)   
+                    for player in players:
+                        sq = player
+                        modePlayer = sq.get_mode()
+                        if modePlayer == "play":
+                            break
+                        
+
                 elif modePlayer == "play":
                     trackAlbum = sq.get_track_album()
                     currentTrack = sq.get_track_current_title()
