@@ -1,5 +1,5 @@
 # orangepizero_lcdi2c
-Managing an i2C LCD 16x2 with an Orange Pi Zero
+Managing an i2C LCD 16x2 or 20x4 with an Orange Pi Zero
 ----
 Before we start, we need to install python specific package. This package includes header files, a static library and development tools. In particular Pyhton.h is required to install the GPIO software.
 
