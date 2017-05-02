@@ -58,6 +58,8 @@ example : sudo python -s 192.168.1.120
 
 More info
 my project page sites.google.com/site/orangepizero/logitech-media-server
+
 distro          www.armbian.com
+
 Raspberry LCD   www.raspberrypi-spy.co.uk/2015/05/using-an-i2c-enabled-lcd-screen-with-the-raspberry-pi/
 
