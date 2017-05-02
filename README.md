@@ -47,15 +47,14 @@ sudo python setup.py install
 
 lms_testcom.py
   -s <ipserver>
-  -p <ipplayer>
-  -w <lcd_width>
-  -w <lcd_width>
+  -p <ipplayer> / if not indicated then autodetect
+  -w <lcd_width> / 20 by default
     ipserver like 192.168.1.102
-    player like 192.168.1.115 / no parameter = player n°1
+    player like 192.168.1.115 / no parameter = autodetect
     lcd with is 16 or 20 / 16 means 16x2, 20 means 20x4
     lcd_address is the i2C LCD address like 0x3f. Use sudo i2cdetect -y 0
 
-example : sudo python -s 192.168.1.120 -p 192.168.1.104 -w 20
+example : sudo python -s 192.168.1.120
 
 More info
 my project page sites.google.com/site/orangepizero/logitech-media-server
