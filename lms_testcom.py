@@ -123,6 +123,7 @@ def printhelp():
     print ("-p <ipPlayer>")
     print ("-w <lcd_width>")
     print ("-l <lcd_address>")
+    print ("-c for clock mode on line 4")
 
     print ("ipserver like 192.168.1.102")
     print ("player like 192.168.1.115 / default = auto detect") 
@@ -135,12 +136,12 @@ def LCDTime(myLCD, lcd_w):
     """PRINT Clock on LCD"""
     if lcd_w ==16:
         myLCD.lcd_string(" **  Clock **",1)
-        myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),2)
+        myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M'),2)
         sleep(5)
     else:
         myLCD.lcd_string("     ** Clock **",1)
         myLCD.lcd_string(" ",2)
-        myLCD.lcd_string("  " + time.strftime('%Y-%m-%d  %H:%M:%S'),3)
+        myLCD.lcd_string(" " + time.strftime('%Y-%m-%d  %H:%M'),3)
         myLCD.lcd_string(" ",4) #sq.rescanprogress(),4)
         
         sleep(5)
@@ -171,9 +172,10 @@ def main(argv):
     lcd_address = "0x3f"
     lcd_w = 20
     verbose = True
+    clock_mode = False
 
     try:
-        opts, args = getopt.getopt(argv,"hs:p:w:l",["server=","player=","lcd_width=","lcd_address="])
+        opts, args = getopt.getopt(argv,"hs:p:w:l:c",["server=","player=","lcd_width=","lcd_address=","clock"])
     except getopt.GetoptError:
         printhelp()
         sys.exit(2)
@@ -190,6 +192,8 @@ def main(argv):
             lcd_w = int(arg)
         elif opt in("-l","--lcd_address"):
             lcd_address = arg    
+        elif opt in("-c","--clock"):
+            clock_mode = True    
            
 
     myLCD = LCD(int(lcd_address,16), lcd_w)
@@ -403,9 +407,12 @@ def main(argv):
                             if linestatus + lcd_w > len(currentTrack):
                                 linestatus = 0       
                         #myLCD.lcd_string(currentTrack, 3)
-                        
-                        myLCD.lcd_string(te, 4)
-                        sleep(0.5)
+                        if clock_mode != True:
+                            myLCD.lcd_string(te, 4)
+                            sleep(0.5)
+                        else:
+                            myLCD.lcd_string(time.strftime('%Y-%m-%d %H:%M:%S'),4)
+                            sleep(0.5)
             except: #Exception as e:
             #else:
                 #myLCD.lcd_string(str(e), 3)
