@@ -1,3 +1,6 @@
+Please consider this new version instead:
+https://github.com/renaudrenaud/OrangePiZero-LMS-I2C-V2
+
 # orangepizero_lcdi2c
 Managing an i2C LCD 16x2 or 20x4 with an Orange Pi Zero
 ----
